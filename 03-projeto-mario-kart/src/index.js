@@ -15,7 +15,12 @@ const player2 = {
 };
 
 async function rollDice() {
+  // Math.random sempre retorna um valor de 0 a 1
   return Math.floor(Math.random() * 6) + 1;
+}
+
+async function rollDiceSpecial() {
+  return Math.floor(Math.random() * 2) + 1; // retorna 1 ou 2  
 }
 
 async function getRandomBlock() {
@@ -45,7 +50,8 @@ async function logRollResult(characterName, block, diceResult, attribute) {
 }
 
 async function playRaceEngine(character1, character2) {
-  for (let round = 1; round <= 5; round++) {
+  //for (let round = 1; round <= 5; round++) { //original
+  for (let round = 1; round < 6; round++) { // Mais eficiente, menos comparacoes
     console.log(`🏁 Rodada ${round}`);
 
     // sortear bloco
@@ -102,6 +108,10 @@ async function playRaceEngine(character1, character2) {
       let powerResult1 = diceResult1 + character1.PODER;
       let powerResult2 = diceResult2 + character2.PODER;
 
+      // let specialWeapon = rollDiceSpecial(); // 1 - casco(-1 ponto)   2 - bomba(-2 pontos)
+      // let specialTurbo = rollDiceSpecial();  // 1 - sem turbo(+0 ponto)  2 - ganhou turbo(+1 ponto)
+      let specialWeapon; // 1 - casco(-1 ponto)   2 - bomba(-2 pontos)
+      let specialTurbo;  // 1 - sem turbo(+0 ponto)  2 - ganhou turbo(+1 ponto)
       console.log(`${character1.NOME} confrontou com ${character2.NOME}! 🥊`);
 
       await logRollResult(
@@ -119,17 +129,51 @@ async function playRaceEngine(character1, character2) {
       );
 
       if (powerResult1 > powerResult2 && character2.PONTOS > 0) {
-        console.log(
-          `${character1.NOME} venceu o confronto! ${character2.NOME} perdeu 1 ponto 🐢`
-        );
-        character2.PONTOS--;
+        specialWeapon = await rollDiceSpecial(); // 1 - casco(-1 ponto)   2 - bomba(-2 pontos)
+        if(specialWeapon == 2 && character2.PONTOS >= 2){
+          console.log(
+            `${character1.NOME} venceu o confronto! ${character2.NOME} perdeu 2 pontos 🐢`
+          );
+          character2.PONTOS -= 2;
+        }
+        else{
+          console.log(
+            `${character1.NOME} venceu o confronto! ${character2.NOME} perdeu 1 ponto 🐢`
+          );
+          character2.PONTOS--;
+        }
+
+        specialTurbo = await rollDiceSpecial(); // 1 - sem turbo(+0 ponto)  2 - ganhou turbo(+1 ponto)
+        if(specialTurbo == 2){
+          character1.PONTOS++;
+          console.log(
+            `${character1.NOME} encontrou um turbo => ganhou 1 ponto.`
+          );
+        }
       }
 
       if (powerResult2 > powerResult1 && character1.PONTOS > 0) {
-        console.log(
-          `${character2.NOME} venceu o confronto! ${character1.NOME} perdeu 1 ponto 🐢`
-        );
-        character1.PONTOS--;
+        specialWeapon = await rollDiceSpecial(); // 1 - casco(-1 ponto)   2 - bomba(-2 pontos)
+        if(specialWeapon == 2 && character1.PONTOS >= 2){
+          console.log(
+            `${character2.NOME} venceu o confronto! ${character1.NOME} perdeu 2 pontos 🐢`
+          );
+          character1.PONTOS -= 2;
+        }
+        else{
+          console.log(
+            `${character2.NOME} venceu o confronto! ${character1.NOME} perdeu 1 ponto 🐢`
+          );
+          character1.PONTOS--;
+        }
+
+        specialTurbo = await rollDiceSpecial();  // 1 - sem turbo(+0 ponto)  2 - ganhou turbo(+1 ponto)
+        if(specialTurbo == 2){
+          character2.PONTOS++;
+          console.log(
+            `${character2.NOME} encontrou um turbo => ganhou 1 ponto.`
+          );
+        }
       }
 
       console.log(
@@ -164,6 +208,7 @@ async function declareWinner(character1, character2) {
   else console.log("A corrida terminou em empate");
 }
 
+// funcao auto invoke
 (async function main() {
   console.log(
     `🏁🚨 Corrida entre ${player1.NOME} e ${player2.NOME} começando...\n`
